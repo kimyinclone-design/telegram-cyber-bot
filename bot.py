@@ -17,7 +17,7 @@ def run_web():
     app.run(host="0.0.0.0", port=port)
 
 # 2. កូដ Telegram Bot និង Gemini API
-TELEGRAM_TOKEN = "8712045754:AAFqrOF86IRBGBoW6846QsjjEXIRXV85koI"
+TELEGRAM_TOKEN = "8824502901:AAHQg7qz6T0Vi5wItDESeMciI1in62j0ZMA"
 GEMINI_API_KEY = "AQ.Ab8RN6IUnCqBPSTUtEF1IONFYz_7tp1Rs8nGpnnDguE7vUwPZg"
 
 genai.configure(api_key=GEMINI_API_KEY)
