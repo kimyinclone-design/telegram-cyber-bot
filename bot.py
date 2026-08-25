@@ -5,7 +5,6 @@ import telebot
 from telebot import types
 from flask import Flask
 
-# ហៅយកមុខងារពី database.py
 import database
 
 # 1. Web Server សម្រាប់ Render Web Service
@@ -13,15 +12,15 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "Modular E-commerce Bot is running smoothly!"
+    return "Modular E-commerce Bot with Channel Auto-Post is running smoothly!"
 
 def run_web():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
-# 2. ព័ត៌មានសម្ងាត់ (ជំនួស Token និង Admin ID របស់អ្នកទីនេះ)
+# 2. ព័ត៌មានសម្ងាត់ (Token និង Channel ID)
 TELEGRAM_TOKEN = "8824502901:AAHQg7qz6T0Vi5wItDESeMciI1in62j0ZMA"
-ADMIN_ID = -1004306979832  # ជំនួសលេខ Telegram ID ផ្ទាល់ខ្លួនរបស់អ្នក
+CHANNEL_ID = -1004306979832  # Channel ID របស់អ្នក
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
@@ -31,7 +30,30 @@ database.init_db()
 # រក្សាទុកស្ថានភាពអតិថិជនបណ្តោះអាសន្នពេលកំពុងជ្រើសរើសទំនិញ
 user_cart = {}
 
-# 3. មុខងារ /start
+# 3. មុខងារសម្រាប់ផុសទំនិញលក់ចូល Channel ស្វ័យប្រវត្ត
+def post_products_to_channel():
+    time.sleep(4)  # រໍាបន្តិចឱ្យ Bot ចាប់ផ្តើមរួចរាល់សិន
+    
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    btn_item1 = types.InlineKeyboardButton("💻 ទិញ Laptop Security Tool - $25", callback_data="buy_laptop")
+    btn_item2 = types.InlineKeyboardButton("📱 ទិញ Smart Phone Accessory - $10", callback_data="buy_phone")
+    markup.add(btn_item1, btn_item2)
+    
+    product_text = (
+        "🔥 <b>ហាងអនឡាញសុវត្ថិភាពខ្ពស់ (Secure E-Commerce)</b> 🔥\n\n"
+        "📦 <b>មុខទំនិញមានក្នុងស្តុក៖</b>\n"
+        "1. 💻 Laptop Security Tool - តម្លៃ <b>$25</b>\n"
+        "2. 📱 Smart Phone Accessory - តម្លៃ <b>$10</b>\n\n"
+        "👇 សូមចុចប៊ូតុងខាងក្រោមដើម្បីជ្រើសរើសទំនិញដែលអ្នកចង់ទិញ!"
+    )
+    
+    try:
+        bot.send_message(CHANNEL_ID, product_text, reply_markup=markup, parse_mode="HTML")
+        print("Product catalog posted to channel successfully!")
+    except Exception as e:
+        print(f"Error posting to channel: {e}")
+
+# 4. មុខងារ /start (សម្រាប់អ្នកចុចតបជាមួយ Bot ផ្ទាល់ខ្លួន)
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     markup = types.InlineKeyboardMarkup(row_width=2)
@@ -47,7 +69,7 @@ def send_welcome(message):
     )
     bot.send_message(message.chat.id, welcome_text, reply_markup=markup, parse_mode="HTML")
 
-# 4. គ្រប់គ្រងការចុចប៊ូតុង
+# 5. គ្រប់គ្រងការចុចប៊ូតុង (Inline Buttons)
 @bot.callback_query_handler(func=lambda call: True)
 def handle_query(call):
     chat_id = call.message.chat.id
@@ -120,7 +142,7 @@ def handle_query(call):
             reply_markup=markup
         )
 
-# 5. ទទួលព័ត៌មានអតិថិជន និងរក្សាទុករงទុកក្នុង Database
+# 6. ទទួលព័ត៌មានអតិថិជន រក្សាទុក Database និងផ្ញើ Order ចូល Channel
 @bot.message_handler(func=lambda message: True)
 def handle_customer_info(message):
     chat_id = message.chat.id
@@ -131,26 +153,28 @@ def handle_customer_info(message):
         customer_username = f"@{message.from_user.username}" if message.from_user.username else "None"
         info_text = message.text
         
+        # រក្សាទុកចូល SQLite Database
         database.save_order(chat_id, customer_username, customer_name, order_info['item'], order_info['price'], info_text)
         
-        admin_msg = (
-            f"🚨 <b>ការបញ្ជាទិញថ្មីត្រូវបានកត់ត្រា!</b> 🚨\n\n"
+        # ផ្ញើព័ត៌មានកុម្មង់ចូលទៅក្នុង Channel ផ្ទាល់
+        channel_order_msg = (
+            f"🚨 <b>មានការបញ្ជាទិញថ្មី (New Order)!</b> 🚨\n\n"
             f"🛍️ <b>ទំនិញ:</b> {order_info['item']} ({order_info['price']})\n"
             f"👤 <b>អតិថិជន:</b> {customer_name} ({customer_username})\n"
             f"🆔 <b>User ID:</b> {chat_id}\n"
             f"📍 <b>ព័ត៌មានអតិថិជន:</b>\n{info_text}"
         )
         try:
-            bot.send_message(ADMIN_ID, admin_msg, parse_mode="HTML")
+            bot.send_message(CHANNEL_ID, channel_order_msg, parse_mode="HTML")
         except Exception as e:
-            print(f"Error sending to admin: {e}")
+            print(f"Error sending order to channel: {e}")
             
         bot.reply_to(message, "🎉 ការកុម្មង់របស់អ្នកត្រូវបានកត់ត្រាក្នុងប្រព័ន្ធដោយជោគជ័យ! យើងនឹងរៀបចំការដឹកជញ្ជូនជូន។")
         del user_cart[chat_id]
     else:
         bot.reply_to(message, "សូមចុចពាក្យ /start ដើម្បីចាប់ផ្តើមប្រើប្រាស់ហាងរបស់យើងខ្ញុំ!")
 
-# 6. ដំណើរការ Bot និង Web Server
+# 7. ដំណើរការ Bot និង Web Server
 def run_bot():
     print("Modular Shopping Bot is running...")
     while True:
@@ -161,7 +185,12 @@ def run_bot():
             time.sleep(5)
 
 if __name__ == "__main__":
+    # បើក Web Server សម្រាប់ Render
     t_web = threading.Thread(target=run_web)
     t_web.start()
     
+    # ផុសទំនិញចូល Channel ស្វ័យប្រវត្តពេល Bot ចាប់ផ្តើម
+    threading.Thread(target=post_products_to_channel).start()
+    
+    # ចាប់ផ្តើម Bot
     run_bot()
