@@ -21,7 +21,7 @@ def run_web():
 
 # 2. ព័ត៌មានសម្ងាត់ (ជំនួស Token និង Admin ID របស់អ្នកទីនេះ)
 TELEGRAM_TOKEN = "8824502901:AAHQg7qz6T0Vi5wItDESeMciI1in62j0ZMA"
-ADMIN_ID = 7932340443  # ជំនួសលេខ Telegram ID ផ្ទាល់ខ្លួនរបស់អ្នក
+ADMIN_ID = -1004306979832  # ជំនួសលេខ Telegram ID ផ្ទាល់ខ្លួនរបស់អ្នក
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
