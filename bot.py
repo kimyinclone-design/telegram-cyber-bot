@@ -20,8 +20,8 @@ def run_web():
     app.run(host="0.0.0.0", port=port)
 
 # 2. ព័ត៌មានសម្ងាត់ (ជំនួស Token និង Admin ID របស់អ្នកទីនេះ)
-TELEGRAM_TOKEN = "ដាក់_Telegram_Token_របស់អ្នកទីនេះ"
-ADMIN_ID = 123456789  # ជំនួសលេខ Telegram ID ផ្ទាល់ខ្លួនរបស់អ្នក
+TELEGRAM_TOKEN = "8824502901:AAHQg7qz6T0Vi5wItDESeMciI1in62j0ZMA"
+ADMIN_ID = 7932340443  # ជំនួសលេខ Telegram ID ផ្ទាល់ខ្លួនរបស់អ្នក
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
