@@ -1,8 +1,22 @@
+import os
 import time
+import threading
 import telebot
 import google.generativeai as genai
+from flask import Flask
 
-# Token និង API Key របស់អ្នក
+# 1. បង្កើត Web Server តូចមួយ ដើម្បីបំពេញលក្ខខណ្ឌ Free Web Service ของ Render
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Telegram Bot is running smoothly!"
+
+def run_web():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
+# 2. កូដ Telegram Bot និង Gemini API
 TELEGRAM_TOKEN = "8712045754:AAFqrOF86IRBGBoW6846QsjjEXIRXV85koI"
 GEMINI_API_KEY = "AQ.Ab8RN6IUnCqBPSTUtEF1IONFYz_7tp1Rs8nGpnnDguE7vUwPZg"
 
@@ -20,7 +34,7 @@ def chat_with_gemini(message):
     except Exception as e:
         bot.reply_to(message, f"Error: {e}")
 
-if __name__ == "__main__":
+def run_bot():
     print("Cloud Bot is running...")
     while True:
         try:
@@ -28,3 +42,10 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Reconnecting: {e}")
             time.sleep(5)
+
+# 3. ដំណើរការទាំង Web Server និង Bot ພ້ອມគ្នា
+if __name__ == "__main__":
+    t_web = threading.Thread(target=run_web)
+    t_web.start()
+    
+    run_bot()
